@@ -87,7 +87,7 @@ Data se ukládají jako **čitelné JSON soubory přímo do složky ve vašem po
 ### Postup
 1. Stáhněte nebo naklonujte repozitář:
    ```bash
-   git clone https://github.com/vas-ucet/filementy.git
+   git clone https://github.com/fandapanda/Moje-filamenty.git
    cd filementy
    ```
 2. Otevřete soubor `index.html` v Chrome nebo Edge:
