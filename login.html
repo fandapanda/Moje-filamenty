@@ -91,11 +91,18 @@
 
       // Hide default credential hints if admin password has been changed
       (async () => {
-        if (Storage.isServerMode()) return; // cannot check before login in server mode
         try {
-          const users = await Storage.readJsonFile('users.json', []);
-          const admin = users.find(u => u.username === 'admin' && u.role === 'admin');
-          const isDefault = admin && await Auth.verifyPassword('admin123', admin.passwordHash);
+          let isDefault;
+          if (Storage.isServerMode()) {
+            const res = await fetch('api.php?action=auth-info');
+            if (!res.ok) return;
+            const data = await res.json();
+            isDefault = data.defaultPassword;
+          } else {
+            const users = await Storage.readJsonFile('users.json', []);
+            const admin = users.find(u => u.username === 'admin' && u.role === 'admin');
+            isDefault = admin && await Auth.verifyPassword('admin123', admin.passwordHash);
+          }
           if (!isDefault) {
             document.getElementById('defaultCredsHint')?.classList.add('d-none');
             document.getElementById('readmeSection')?.classList.add('d-none');

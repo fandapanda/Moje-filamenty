@@ -137,6 +137,25 @@ if ($action === 'logout') {
     jsonOut(['ok' => true]);
 }
 
+// ── Auth info (no auth required) ───────────────────────────────────────────────
+
+if ($action === 'auth-info') {
+    $usersFile = $DATA_DIR . 'users.json';
+    if (!file_exists($usersFile)) {
+        jsonOut(['defaultPassword' => true]);
+    }
+    $users = json_decode(file_get_contents($usersFile), true) ?? [];
+    $admin = null;
+    foreach ($users as $u) {
+        if (strtolower($u['username'] ?? '') === 'admin' && !empty($u['active']) && ($u['role'] ?? '') === 'admin') {
+            $admin = $u;
+            break;
+        }
+    }
+    $isDefault = $admin && hash('sha256', 'admin123') === ($admin['passwordHash'] ?? '');
+    jsonOut(['defaultPassword' => (bool) $isDefault]);
+}
+
 // ── Session check ──────────────────────────────────────────────────────────────
 
 if ($action === 'check') {
