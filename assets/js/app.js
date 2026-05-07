@@ -51,7 +51,7 @@ const App = (() => {
   function showOverlaySpinner(message) {
     setOverlayContent(`
       <div class="setup-box">
-        <div class="setup-logo">🧵</div>
+        <div class="setup-logo"><img src="assets/img/logo.svg" alt="Moje filamenty"></div>
         <h2 class="fw-bold" style="color: var(--color-primary-dark)">Moje filamenty</h2>
         <div class="spinner-border text-primary mt-3" role="status" aria-hidden="true"></div>
         <p class="mt-2 text-muted">${message || 'Načítání...'}</p>
@@ -62,7 +62,7 @@ const App = (() => {
   function showOverlaySetup(onFolderSelected) {
     setOverlayContent(`
       <div class="setup-box">
-        <div class="setup-logo">🧵</div>
+        <div class="setup-logo"><img src="assets/img/logo.svg" alt="Moje filamenty"></div>
         <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
         <p class="text-muted mb-1">Evidence filamentů pro 3D tisk</p>
         <hr>
@@ -97,7 +97,7 @@ const App = (() => {
     const fsaSupported = Storage.isSupported();
     setOverlayContent(`
       <div class="setup-box">
-        <div class="setup-logo">🧵</div>
+        <div class="setup-logo"><img src="assets/img/logo.svg" alt="Moje filamenty"></div>
         <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
         <p class="text-muted mb-1">Evidence filamentů pro 3D tisk</p>
         <hr>
@@ -152,7 +152,7 @@ const App = (() => {
   function showOverlayPermission(onGranted) {
     setOverlayContent(`
       <div class="setup-box">
-        <div class="setup-logo">🧵</div>
+        <div class="setup-logo"><img src="assets/img/logo.svg" alt="Moje filamenty"></div>
         <h2 class="fw-bold" style="color: var(--color-primary-dark)">Moje filamenty</h2>
         <hr>
         <p class="mb-3">Aplikace potřebuje přístup k datové složce.<br>
@@ -177,7 +177,7 @@ const App = (() => {
   function showOverlayNoSupport() {
     setOverlayContent(`
       <div class="setup-box">
-        <div class="setup-logo">🧵</div>
+        <div class="setup-logo"><img src="assets/img/logo.svg" alt="Moje filamenty"></div>
         <h2 class="fw-bold" style="color: var(--color-primary-dark)">Moje filamenty</h2>
         <hr>
         <div class="alert alert-warning text-start" role="alert">
@@ -224,7 +224,7 @@ const App = (() => {
 
     navEl.innerHTML = `
       <div class="container-fluid">
-        <a class="navbar-brand" href="index.html">🧵 Moje filamenty</a>
+        <a class="navbar-brand d-flex align-items-center gap-2" href="index.html"><img src="assets/img/logo.svg" alt="">Moje filamenty</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false">
           <span class="navbar-toggler-icon"></span>
         </button>

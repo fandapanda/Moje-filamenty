@@ -24,6 +24,7 @@
 /* Navbar */
 .navbar { background-color: var(--color-primary-dark) !important; }
 .navbar-brand { font-weight: 700; font-size: 1.3rem; }
+.navbar-brand img { height: 28px; width: auto; vertical-align: middle; }
 .navbar-nav .nav-link.active { color: var(--color-primary) !important; font-weight: 600; }
 .navbar-nav .nav-link { color: rgba(255,255,255,0.85) !important; }
 .navbar-nav .nav-link:hover { color: #fff !important; }
@@ -54,7 +55,8 @@
 /* Setup overlay */
 #appOverlay { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; }
 .setup-box { max-width: 480px; width: 100%; text-align: center; padding: 2rem; }
-.setup-logo { font-size: 3rem; margin-bottom: 1rem; }
+.setup-logo { margin-bottom: 1rem; }
+.setup-logo img { height: 72px; width: auto; }
 
 /* Stats cards on dashboard */
 .stat-card { border: none; border-top: 4px solid var(--color-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
@@ -74,7 +76,8 @@
 
 /* Login page */
 .login-card { max-width: 420px; width: 100%; }
-.login-logo { font-size: 3.5rem; }
+.login-logo { }
+.login-logo img { height: 80px; width: auto; }
 
 /* Filter bar */
 .filter-bar { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }

@@ -7,7 +7,7 @@
 [![Pure JS](https://img.shields.io/badge/JavaScript-vanilla-f7df1e?style=flat-square&logo=javascript)](.)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952b3?style=flat-square&logo=bootstrap)](.)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
-[![Chrome/Edge](https://img.shields.io/badge/FSA%20mode-Chrome%20%7C%20Edge%2086%2B-4285F4?style=flat-square&logo=googlechrome)](.)
+[![Všechny prohlížeče](https://img.shields.io/badge/prohlížeč-všechny%20moderní-brightgreen?style=flat-square&logo=googlechrome)](.)
 [![PHP](https://img.shields.io/badge/Server%20mode-PHP%208%2B-777bb3?style=flat-square&logo=php)](.)
 
 ---
@@ -21,7 +21,9 @@ Aplikace podporuje **dva režimy ukládání dat**:
 | Režim | Kde běží | Kde jsou data | Přístup z více zařízení |
 |-------|----------|---------------|------------------------|
 | **Lokální složka** (FSA) | přímo v prohlížeči | JSON soubory na vašem disku | jen sdílenou složkou (OneDrive, Dropbox) |
-| **Server (PHP)** | na hostingu s PHP | JSON soubory na serveru | ano, odkudkoli |
+| **Server (PHP)** | na hostingu s PHP | JSON soubory na serveru | ano, odkudkoli, z jakéhokoli zařízení |
+
+> **Serverový režim funguje ve všech moderních prohlížečích** — Chrome, Edge, Firefox, Safari, Brave a jejich mobilních verzích. Režim lokální složky vyžaduje Chrome, Edge nebo Brave na desktopu.
 
 ---
 
@@ -87,31 +89,46 @@ Aplikace podporuje **dva režimy ukládání dat**:
 
 ### Varianta A — Lokální režim (bez serveru)
 
-**Požadavky:** Google Chrome nebo Microsoft Edge 86+, nic jiného.
+**Požadavky:** Chrome, Edge nebo Brave na desktopu. Žádná instalace.
 
 1. Stáhněte nebo naklonujte repozitář:
    ```bash
    git clone https://github.com/fandapanda/Moje-filamenty.git
    ```
-2. Otevřete soubor `index.html` v Chrome nebo Edge (dvojklik, přetažení nebo `Ctrl+O`).
-3. Při prvním spuštění zvolte **Lokální složka** a vyberte adresář pro data (stačí jednou — prohlížeč si ho zapamatuje).
+2. Otevřete soubor `index.html` v Chrome, Edge nebo Brave (dvojklik, přetažení nebo `Ctrl+O`).
+3. Při prvním spuštění zvolte **Lokální složka** a vyberte adresář pro data — prohlížeč si ho zapamatuje.
 4. Přihlaste se výchozími údaji a změňte heslo.
 
-> **Firefox / Safari:** Nepodporují File System Access API. Aplikace nabídne pouze serverový režim nebo omezený provoz s ručním exportem/importem přes sekci Záloha.
+> Pro přístup ze stejné složky na více počítačích vyberte adresář v OneDrive, Dropboxu nebo Google Drive.
 
 ---
 
 ### Varianta B — Serverový režim (hosting s PHP)
 
-**Požadavky:** webhosting s PHP 8+, Apache s povoleným `mod_rewrite`.
+**Požadavky:** webhosting s PHP 8+, Apache s `mod_rewrite`. Funguje v **jakémkoli** moderním prohlížeči a zařízení.
 
 1. Nahrajte všechny soubory projektu na server (FTP/SFTP/Git deploy).
-2. Ujistěte se, že složka `data/` je zapisovatelná (`chmod 755` nebo přes správce souborů hostingu). Pokud neexistuje, `api.php` ji při prvním spuštění sám vytvoří.
-3. Otevřete doménu v libovolném moderním prohlížeči.
+2. Ujistěte se, že složka `data/` je zapisovatelná. Pokud neexistuje, `api.php` ji při prvním spuštění sám vytvoří.
+3. Otevřete doménu v prohlížeči (Chrome, Firefox, Safari, Edge, Brave — desktop i mobil).
 4. Při prvním spuštění zvolte **Server (PHP)** — aplikace automaticky vytvoří datové soubory s ukázkovými daty.
 5. Přihlaste se výchozími údaji (`admin` / `admin123`) a okamžitě změňte heslo.
 
 > Data se ukládají do složky `data/` na serveru jako JSON soubory. Přímý HTTP přístup ke složce blokuje `.htaccess`. PHP sessions zajišťují přihlášení na straně serveru.
+
+---
+
+## Kompatibilita prohlížečů
+
+| Prohlížeč | Lokální složka | Server (PHP) |
+|-----------|:--------------:|:------------:|
+| Chrome 86+ | ✅ | ✅ |
+| Edge 86+ | ✅ | ✅ |
+| Brave (desktop) | ✅ | ✅ |
+| Firefox | — | ✅ |
+| Safari (macOS) | — | ✅ |
+| Safari (iOS) | — | ✅ |
+| Brave (iOS/Android) | — | ✅ |
+| Samsung Internet | — | ✅ |
 
 ---
 
@@ -280,7 +297,7 @@ celková cena      = materiál + elektřina
 3. Při každém dalším spuštění aplikace požádá o obnovení přístupu (jedno kliknutí).
 4. Při každé změně dat aplikace okamžitě zapíše příslušný JSON soubor na disk.
 
-Data tak existují jako standardní soubory na vašem disku — nezávisí na prohlížeči, cache ani cookies. Pro přístup z více počítačů stačí vybrat složku v OneDrive, Dropboxu nebo Google Drive.
+Data tak existují jako standardní soubory na vašem disku — nezávisí na prohlížeči, cache ani cookies.
 
 ### Serverový režim (PHP API)
 
