@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moje filamenty - Seznam filamentů</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <!-- App Overlay -->
+  <div id="appOverlay">
+    <div class="setup-box">
+      <div class="setup-logo">🧵</div>
+      <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
+      <div class="spinner-border text-primary mt-3" role="status" aria-hidden="true"></div>
+      <p class="mt-2 text-muted">Načítání...</p>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark" id="mainNav"></nav>
+
+  <div id="defaultPasswordAlert" class="alert alert-warning alert-dismissible mx-3 mt-3 d-none" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Pozor!</strong> Používáte výchozí heslo. Změňte ho v sekci <a href="users.html">Uživatelé</a>.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zavřít"></button>
+  </div>
+
+  <main class="container-fluid py-4">
+    <div class="page-header">
+      <h1><i class="bi bi-list-ul me-2"></i>Filamenty <small class="text-muted fs-6 fw-normal" id="filamentCount"></small></h1>
+      <a href="filament-add.html" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Přidat filament
+      </a>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label small text-muted mb-1">Materiál</label>
+          <select class="form-select form-select-sm" id="filterMaterial">
+            <option value="">Všechny materiály</option>
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label small text-muted mb-1">Stav</label>
+          <select class="form-select form-select-sm" id="filterStatus">
+            <option value="">Všechny stavy</option>
+            <option value="active">Aktivní</option>
+            <option value="low">Dochází</option>
+            <option value="empty">Prázdná</option>
+            <option value="archived">Archivovaná</option>
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-4">
+          <label class="form-label small text-muted mb-1">Hledat</label>
+          <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="Název, výrobce...">
+        </div>
+        <div class="col-sm-12 col-md-2">
+          <button class="btn btn-sm btn-outline-secondary w-100" id="resetFilterBtn">
+            <i class="bi bi-x-circle me-1"></i>Resetovat
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="emptyState" class="d-none text-center py-5">
+      <i class="bi bi-inbox" style="font-size:3rem;color:#ccc"></i>
+      <p class="text-muted mt-3 mb-2">Žádné filamenty odpovídají filtru.</p>
+      <button class="btn btn-outline-secondary btn-sm me-2" id="resetFilterBtn2">Resetovat filtr</button>
+      <a href="filament-add.html" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Přidat filament
+      </a>
+    </div>
+
+    <!-- Table -->
+    <div id="tableWrapper" class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:40px" class="text-center">Barva</th>
+            <th>Název</th>
+            <th>Materiál</th>
+            <th>Výrobce</th>
+            <th class="text-end">Čistá hm.</th>
+            <th class="text-end">Délka</th>
+            <th style="min-width:150px">Zbývá</th>
+            <th>Stav</th>
+            <th style="width:100px">Akce</th>
+          </tr>
+        </thead>
+        <tbody id="filamentsTableBody">
+          <!-- dynamically rendered -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Toast container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/calculations.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/filaments.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await App.init();
+      await initFilamentsList();
+
+      // Wire second reset button
+      const btn2 = document.getElementById('resetFilterBtn2');
+      if (btn2) btn2.addEventListener('click', () => {
+        document.getElementById('resetFilterBtn').click();
+      });
+    });
+  </script>
+</body>
+</html>

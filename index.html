@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moje filamenty - Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <!-- App Overlay -->
+  <div id="appOverlay">
+    <div class="setup-box">
+      <div class="setup-logo">🧵</div>
+      <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
+      <div class="spinner-border text-primary mt-3" role="status" aria-hidden="true"></div>
+      <p class="mt-2 text-muted">Načítání...</p>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark" id="mainNav"></nav>
+
+  <div id="defaultPasswordAlert" class="alert alert-warning alert-dismissible mx-3 mt-3 d-none" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Pozor!</strong> Používáte výchozí heslo. Změňte ho v sekci <a href="users.html">Uživatelé</a>.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zavřít"></button>
+  </div>
+
+  <main class="container-fluid py-4">
+    <!-- Page header -->
+    <div class="page-header">
+      <h1><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
+      <a href="filament-add.html" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Přidat filament
+      </a>
+    </div>
+
+    <!-- Low filament alert -->
+    <div id="lowFilamentAlert" class="alert alert-warning d-none" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <strong>Pozor!</strong> Některé filamenty docházejí.
+      <span id="lowFilamentList"></span>
+    </div>
+
+    <!-- Stats row -->
+    <div class="row g-3 mb-4" id="statsRow">
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card stat-card h-100">
+          <div class="card-body text-center py-3">
+            <div class="stat-number" id="statTotal">—</div>
+            <div class="text-muted small">Celkem cívek</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card stat-card h-100">
+          <div class="card-body text-center py-3">
+            <div class="stat-number" id="statActive">—</div>
+            <div class="text-muted small">Aktivní</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card stat-card stat-low h-100">
+          <div class="card-body text-center py-3">
+            <div class="stat-number stat-low-num" id="statLow">—</div>
+            <div class="text-muted small">Dochází</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card stat-card stat-empty h-100">
+          <div class="card-body text-center py-3">
+            <div class="stat-number stat-empty-num" id="statEmpty">—</div>
+            <div class="text-muted small">Prázdné</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card stat-card h-100">
+          <div class="card-body text-center py-3">
+            <div class="stat-number" id="statWeight" style="font-size:1.3rem">—</div>
+            <div class="text-muted small">Čistá hmotnost</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card stat-card h-100">
+          <div class="card-body text-center py-3">
+            <div class="stat-number" id="statMeters" style="font-size:1.3rem">—</div>
+            <div class="text-muted small">Odh. délka</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar d-flex align-items-center gap-2 flex-wrap">
+      <span class="fw-medium me-1">Zobrazit:</span>
+      <div class="btn-group btn-group-sm" id="statusFilter" role="group">
+        <button type="button" class="btn btn-primary active" data-filter="">Všechny</button>
+        <button type="button" class="btn btn-outline-primary" data-filter="active">Aktivní</button>
+        <button type="button" class="btn btn-outline-primary" data-filter="low">Dochází</button>
+        <button type="button" class="btn btn-outline-primary" data-filter="empty">Prázdné</button>
+        <button type="button" class="btn btn-outline-secondary" data-filter="archived">Archivované</button>
+      </div>
+      <input type="text" class="form-control form-control-sm ms-auto" id="dashSearch" placeholder="Hledat..." style="max-width:220px">
+    </div>
+
+    <!-- Filament cards -->
+    <div id="filamentCards" class="row g-3">
+      <!-- dynamically rendered -->
+    </div>
+
+    <!-- Empty state -->
+    <div id="dashEmptyState" class="d-none text-center py-5">
+      <i class="bi bi-inbox" style="font-size:3rem;color:#ccc"></i>
+      <p class="text-muted mt-3 mb-2">Žádné filamenty k zobrazení.</p>
+      <a href="filament-add.html" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Přidat první filament
+      </a>
+    </div>
+  </main>
+
+  <!-- Toast container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/calculations.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/filaments.js"></script>
+  <script>
+    let _allFilaments = [];
+    let _activeFilter = '';
+    let _searchVal = '';
+
+    async function initDashboard() {
+      await loadDashboard();
+    }
+
+    async function loadDashboard() {
+      _allFilaments = await Storage.readJsonFile('filaments.json', []);
+      renderStats();
+      renderCards();
+    }
+
+    function renderStats() {
+      const nonArchived = _allFilaments.filter(f => f.status !== 'archived');
+      const active = nonArchived.filter(f => f.status === 'active').length;
+      const low = nonArchived.filter(f => f.status === 'low').length;
+      const empty = nonArchived.filter(f => f.status === 'empty').length;
+      const totalNet = nonArchived.reduce((s, f) => s + (f.netWeight || 0), 0);
+      const totalMeters = nonArchived
+        .filter(f => f.status === 'active' || f.status === 'low')
+        .reduce((s, f) => s + (f.lengthMeters || 0), 0);
+
+      document.getElementById('statTotal').textContent = nonArchived.length;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statLow').textContent = low;
+      document.getElementById('statEmpty').textContent = empty;
+      document.getElementById('statWeight').textContent = App.formatWeight(Math.round(totalNet));
+      document.getElementById('statMeters').textContent = App.formatLength(Math.round(totalMeters * 10) / 10);
+
+      // Low filament alert
+      const lowFils = nonArchived.filter(f => f.status === 'low');
+      const alertEl = document.getElementById('lowFilamentAlert');
+      const listEl = document.getElementById('lowFilamentList');
+      if (lowFils.length > 0) {
+        listEl.innerHTML = ' ' + lowFils.map(f =>
+          `<a href="filament-edit.html?id=${f.id}" class="fw-medium">${f.name}</a>`
+        ).join(', ');
+        alertEl.classList.remove('d-none');
+      } else {
+        alertEl.classList.add('d-none');
+      }
+    }
+
+    function renderCards() {
+      const container = document.getElementById('filamentCards');
+      const emptyEl = document.getElementById('dashEmptyState');
+
+      let filtered = _allFilaments.filter(f => {
+        if (_activeFilter && f.status !== _activeFilter) return false;
+        if (!_activeFilter && f.status === 'archived') return false; // hide archived by default
+        if (_searchVal) {
+          const hay = [f.name, f.manufacturer, f.material, f.colorName].join(' ').toLowerCase();
+          if (!hay.includes(_searchVal)) return false;
+        }
+        return true;
+      });
+
+      container.innerHTML = '';
+      if (filtered.length === 0) {
+        emptyEl.classList.remove('d-none');
+        return;
+      }
+      emptyEl.classList.add('d-none');
+
+      filtered.forEach(f => {
+        const barClass = Calculations.getProgressBarClass(f.remainingPercent);
+        const statusClass = f.status === 'low' ? 'status-low' : f.status === 'empty' ? 'status-empty' : f.status === 'archived' ? 'status-archived' : '';
+        const col = document.createElement('div');
+        col.className = 'col-sm-6 col-md-4 col-lg-3';
+        col.innerHTML = `
+          <div class="card filament-card h-100 ${statusClass}" style="border-left-color:${f.colorHex || 'var(--color-primary)'}">
+            <div class="card-body pb-2">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <div class="d-flex gap-1 flex-wrap">
+                  <span class="badge bg-secondary small">${f.material}</span>
+                  <span class="badge" style="background:rgba(27,79,76,0.1);color:var(--color-primary-dark);font-weight:500;font-size:0.72rem">${f.manufacturer}</span>
+                </div>
+                <span class="badge ${Calculations.getStatusBadgeClass(f.status)} ms-1">${Calculations.getStatusLabel(f.status)}</span>
+              </div>
+              <h6 class="card-title mb-1 fw-semibold">${escH(f.name)}</h6>
+              ${f.colorName ? `<div class="text-muted small mb-2"><span class="color-dot me-1" style="width:14px;height:14px;background:${f.colorHex};border-radius:50%;display:inline-block;border:1px solid #ccc;vertical-align:middle;"></span>${escH(f.colorName)}</div>` : ''}
+              <div class="row row-cols-2 g-1 mb-2 small">
+                <div>
+                  <div class="text-muted" style="font-size:0.72rem">Čistá hmotnost</div>
+                  <div class="fw-medium">${App.formatWeight(f.netWeight)}</div>
+                </div>
+                <div>
+                  <div class="text-muted" style="font-size:0.72rem">Odh. délka</div>
+                  <div class="fw-medium">${App.formatLength(f.lengthMeters)}</div>
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="progress flex-grow-1 ${barClass}" style="height:8px;">
+                  <div class="progress-bar" style="width:${f.remainingPercent}%"></div>
+                </div>
+                <small class="text-muted text-nowrap">${App.formatPercent(f.remainingPercent)}</small>
+              </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 pt-0 pb-2">
+              <div class="d-flex gap-2">
+                <a href="filament-edit.html?id=${f.id}" class="btn btn-sm btn-outline-secondary flex-grow-1">
+                  <i class="bi bi-pencil me-1"></i>Upravit
+                </a>
+                <button class="btn btn-sm btn-primary flex-grow-1 qw-card-btn" data-id="${f.id}">
+                  <i class="bi bi-speedometer2 me-1"></i>Zvážit
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(col);
+      });
+
+      // Quick weigh from cards
+      container.querySelectorAll('.qw-card-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const fil = _allFilaments.find(f => f.id === id);
+          if (!fil) return;
+          App.showQuickWeighModal(fil, async () => {
+            await loadDashboard();
+          });
+        });
+      });
+    }
+
+    function escH(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // Filter buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('statusFilter').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-filter]');
+        if (!btn) return;
+        document.querySelectorAll('#statusFilter button').forEach(b => {
+          b.classList.remove('active', 'btn-primary', 'btn-secondary');
+          if (b.dataset.filter === '' || b.dataset.filter === 'active' || b.dataset.filter === 'low' || b.dataset.filter === 'empty') {
+            b.classList.add('btn-outline-primary');
+          } else {
+            b.classList.add('btn-outline-secondary');
+          }
+        });
+        btn.classList.remove('btn-outline-primary', 'btn-outline-secondary');
+        btn.classList.add('active');
+        if (btn.dataset.filter === 'archived') {
+          btn.classList.add('btn-secondary');
+        } else {
+          btn.classList.add('btn-primary');
+        }
+        _activeFilter = btn.dataset.filter;
+        renderCards();
+      });
+
+      document.getElementById('dashSearch').addEventListener('input', (e) => {
+        _searchVal = e.target.value.toLowerCase().trim();
+        renderCards();
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await App.init();
+      await initDashboard();
+    });
+  </script>
+</body>
+</html>

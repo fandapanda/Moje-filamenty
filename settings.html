@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moje filamenty - Nastavení</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <!-- App Overlay -->
+  <div id="appOverlay">
+    <div class="setup-box">
+      <div class="setup-logo">🧵</div>
+      <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
+      <div class="spinner-border text-primary mt-3" role="status" aria-hidden="true"></div>
+      <p class="mt-2 text-muted">Načítání...</p>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark" id="mainNav"></nav>
+
+  <div id="defaultPasswordAlert" class="alert alert-warning alert-dismissible mx-3 mt-3 d-none" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Pozor!</strong> Používáte výchozí heslo. Změňte ho v sekci <a href="users.html">Uživatelé</a>.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zavřít"></button>
+  </div>
+
+  <main class="container py-4">
+    <div class="page-header">
+      <h1><i class="bi bi-gear me-2"></i>Nastavení</h1>
+    </div>
+
+    <form id="settingsForm" novalidate>
+      <div class="row g-4">
+
+        <!-- General settings -->
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header" style="background:var(--color-primary-dark);color:#fff">
+              <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>Obecná nastavení</h6>
+            </div>
+            <div class="card-body p-4">
+              <div class="mb-3">
+                <label for="set_appName" class="form-label fw-medium">Název aplikace</label>
+                <input type="text" class="form-control" id="set_appName" required>
+              </div>
+              <div class="mb-3">
+                <label for="set_defaultSpoolWeight" class="form-label fw-medium">Výchozí hmotnost filamentu (g)</label>
+                <input type="number" class="form-control" id="set_defaultSpoolWeight" min="1" step="1" required>
+                <div class="form-text">Předvyplněná hodnota při přidávání nového filamentu.</div>
+              </div>
+              <div class="mb-3">
+                <label for="set_defaultDiameter" class="form-label fw-medium">Výchozí průměr (mm)</label>
+                <select class="form-select" id="set_defaultDiameter">
+                  <option value="1.75">1,75 mm</option>
+                  <option value="2.85">2,85 mm</option>
+                  <option value="3.0">3,00 mm</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="set_lowThreshold" class="form-label fw-medium">Práh pro stav "Dochází" (%)</label>
+                <div class="input-group">
+                  <input type="number" class="form-control" id="set_lowThreshold" min="1" max="99" step="1" required>
+                  <span class="input-group-text">%</span>
+                </div>
+                <div class="form-text">Filament se označí jako "Dochází", pokud zbývá méně než tato hodnota.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data folder info -->
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header" style="background:var(--color-primary-dark);color:#fff">
+              <h6 class="mb-0"><i class="bi bi-folder2 me-2"></i>Datová složka</h6>
+            </div>
+            <div class="card-body p-4">
+              <p class="text-muted small mb-2">Aktuálně vybraná složka pro ukládání dat:</p>
+              <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:#f8f9fa;border:1px solid #dee2e6">
+                <i class="bi bi-folder-fill" style="color:var(--color-primary);font-size:1.3rem"></i>
+                <span id="currentFolderName" class="fw-medium">—</span>
+              </div>
+              <div class="mt-3">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="changeFolderBtn">
+                  <i class="bi bi-folder2-open me-1"></i>Změnit složku
+                </button>
+              </div>
+              <hr>
+              <p class="small text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Data jsou uložena jako JSON soubory přímo ve vybrané složce.
+                Pro zálohu nebo přesun dat použijte sekci <a href="backup.html">Záloha</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Materials table -->
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:var(--color-primary-dark);color:#fff">
+              <h6 class="mb-0"><i class="bi bi-table me-2"></i>Materiály</h6>
+              <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+                <i class="bi bi-plus me-1"></i>Přidat materiál
+              </button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Název</th>
+                      <th>Hustota (g/cm³)</th>
+                      <th>Teplota trysky (°C)</th>
+                      <th>Teplota podložky (°C)</th>
+                      <th style="width:60px">Akce</th>
+                    </tr>
+                  </thead>
+                  <tbody id="materialsTableBody">
+                    <!-- dynamically rendered -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save button -->
+        <div class="col-12 d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-save me-2"></i>Uložit nastavení
+          </button>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <!-- Add material modal -->
+  <div class="modal fade" id="addMaterialModal" tabindex="-1" aria-labelledby="addMaterialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background:var(--color-primary-dark);color:#fff">
+          <h5 class="modal-title" id="addMaterialModalLabel">
+            <i class="bi bi-plus-circle me-2"></i>Přidat materiál
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addMaterialForm" novalidate>
+            <div class="mb-3">
+              <label for="newMatName" class="form-label fw-medium">Název materiálu <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="newMatName" placeholder="např. NYLON" required>
+              <div class="form-text">Bude automaticky převeden na velká písmena.</div>
+            </div>
+            <div class="mb-3">
+              <label for="newMatDensity" class="form-label fw-medium">Hustota (g/cm³) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="newMatDensity" min="0.1" step="0.01" placeholder="1.14" required>
+            </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <label for="newMatNozzle" class="form-label fw-medium">Teplota trysky (°C)</label>
+                <input type="number" class="form-control" id="newMatNozzle" min="0" step="1" placeholder="250">
+              </div>
+              <div class="col-6">
+                <label for="newMatBed" class="form-label fw-medium">Teplota podložky (°C)</label>
+                <input type="number" class="form-control" id="newMatBed" min="0" step="1" placeholder="70">
+              </div>
+            </div>
+            <div class="mt-3 d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus me-1"></i>Přidat
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/calculations.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/settings.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await App.init();
+      await initSettings();
+
+      // Show current folder name
+      const folderName = await Storage.getDirName();
+      const folderEl = document.getElementById('currentFolderName');
+      if (folderEl) folderEl.textContent = folderName || '(nevybráno)';
+
+      // Change folder button
+      document.getElementById('changeFolderBtn').addEventListener('click', async () => {
+        if (!Storage.isSupported()) {
+          App.showToast('Váš prohlížeč nepodporuje výběr složky.', 'warning');
+          return;
+        }
+        try {
+          await Storage.selectDataFolder();
+          const newName = await Storage.getDirName();
+          if (folderEl) folderEl.textContent = newName || '(nevybráno)';
+          App.showToast('Datová složka byla změněna.', 'success');
+        } catch (e) {
+          if (e.name !== 'AbortError') App.showToast('Chyba: ' + e.message, 'danger');
+        }
+      });
+
+      // Close add material modal on successful add
+      const addMaterialForm = document.getElementById('addMaterialForm');
+      if (addMaterialForm) {
+        const originalSubmit = addMaterialForm.onsubmit;
+        addMaterialForm.addEventListener('submit', () => {
+          setTimeout(() => {
+            const modalEl = document.getElementById('addMaterialModal');
+            if (modalEl) {
+              const modal = bootstrap.Modal.getInstance(modalEl);
+              if (modal) modal.hide();
+            }
+          }, 500);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

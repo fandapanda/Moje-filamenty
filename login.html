@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moje filamenty - Přihlášení</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-light">
+
+  <!-- App Overlay -->
+  <div id="appOverlay">
+    <div class="setup-box">
+      <div class="setup-logo">🧵</div>
+      <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
+      <div class="spinner-border text-primary mt-3" role="status" aria-hidden="true"></div>
+      <p class="mt-2 text-muted">Načítání...</p>
+    </div>
+  </div>
+
+  <!-- Login Form -->
+  <div class="min-vh-100 d-flex align-items-center justify-content-center py-5">
+    <div class="login-card">
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4 p-md-5">
+          <div class="text-center mb-4">
+            <div class="login-logo mb-2">🧵</div>
+            <h1 class="h3 fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h1>
+            <p class="text-muted mb-0">Evidence filamentů pro 3D tisk</p>
+          </div>
+
+          <div id="loginError" class="alert alert-danger d-none" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            <span id="loginErrorMsg">Nesprávné přihlašovací údaje.</span>
+          </div>
+
+          <form id="loginForm" novalidate>
+            <div class="mb-3">
+              <label for="loginUsername" class="form-label fw-medium">Uživatelské jméno</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" class="form-control" id="loginUsername" placeholder="admin"
+                  required autocomplete="username" autofocus>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="loginPassword" class="form-label fw-medium">Heslo</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input type="password" class="form-control" id="loginPassword" placeholder="••••••••"
+                  required autocomplete="current-password">
+                <button class="btn btn-outline-secondary" type="button" id="togglePwd" tabindex="-1">
+                  <i class="bi bi-eye" id="togglePwdIcon"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-lg" id="loginBtn">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Přihlásit se
+            </button>
+          </form>
+
+          <hr class="my-4">
+          <p class="text-center text-muted small mb-0">
+            <i class="bi bi-question-circle me-1"></i>
+            Potřebujete pomoc? <a href="README.md" target="_blank">Přečtěte si README</a>.
+          </p>
+        </div>
+      </div>
+
+      <p class="text-center text-muted small mt-3">
+        Výchozí přihlašovací údaje: <code>admin</code> / <code>admin123</code>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/calculations.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await App.initLogin();
+
+      // Password visibility toggle
+      document.getElementById('togglePwd').addEventListener('click', () => {
+        const input = document.getElementById('loginPassword');
+        const icon = document.getElementById('togglePwdIcon');
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.className = 'bi bi-eye-slash';
+        } else {
+          input.type = 'password';
+          icon.className = 'bi bi-eye';
+        }
+      });
+
+      // Login form submit
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorEl = document.getElementById('loginError');
+        const errorMsg = document.getElementById('loginErrorMsg');
+        const btn = document.getElementById('loginBtn');
+
+        errorEl.classList.add('d-none');
+
+        const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!username || !password) {
+          errorMsg.textContent = 'Vyplňte přihlašovací jméno a heslo.';
+          errorEl.classList.remove('d-none');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Přihlašuji...';
+
+        try {
+          const users = await Storage.readJsonFile('users.json', []);
+          const user = users.find(u => u.username === username && u.active);
+
+          if (!user) {
+            errorMsg.textContent = 'Uživatel nenalezen nebo je deaktivován.';
+            errorEl.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Přihlásit se';
+            return;
+          }
+
+          const valid = await Auth.verifyPassword(password, user.passwordHash);
+          if (!valid) {
+            errorMsg.textContent = 'Nesprávné heslo.';
+            errorEl.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Přihlásit se';
+            return;
+          }
+
+          Auth.setCurrentUser(user);
+          await Storage.addLog(user.username, 'login', `Přihlášení uživatele ${user.name}`);
+          window.location.href = 'index.html';
+        } catch (err) {
+          errorMsg.textContent = 'Chyba: ' + err.message;
+          errorEl.classList.remove('d-none');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Přihlásit se';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

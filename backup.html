@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moje filamenty - Záloha</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <!-- App Overlay -->
+  <div id="appOverlay">
+    <div class="setup-box">
+      <div class="setup-logo">🧵</div>
+      <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
+      <div class="spinner-border text-primary mt-3" role="status" aria-hidden="true"></div>
+      <p class="mt-2 text-muted">Načítání...</p>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark" id="mainNav"></nav>
+
+  <div id="defaultPasswordAlert" class="alert alert-warning alert-dismissible mx-3 mt-3 d-none" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Pozor!</strong> Používáte výchozí heslo. Změňte ho v sekci <a href="users.html">Uživatelé</a>.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zavřít"></button>
+  </div>
+
+  <main class="container py-4">
+    <div class="page-header">
+      <h1><i class="bi bi-cloud-arrow-down me-2"></i>Záloha a obnova</h1>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- Backup actions -->
+      <div class="col-md-6">
+        <!-- Create backup -->
+        <div class="backup-card">
+          <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-cloud-arrow-down-fill fs-2 text-primary"></i>
+            <div class="flex-grow-1">
+              <h5>Vytvořit zálohu</h5>
+              <p class="text-muted small mb-2">Stáhne kompletní zálohu všech dat jako jeden JSON soubor s časovým razítkem.</p>
+              <button class="btn btn-primary" id="createBackupBtn">
+                <i class="bi bi-download me-1"></i>Stáhnout zálohu
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import backup -->
+        <div class="backup-card mt-3">
+          <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-cloud-arrow-up-fill fs-2 text-primary"></i>
+            <div class="flex-grow-1">
+              <h5>Importovat zálohu</h5>
+              <p class="text-muted small mb-2">Načte zálohu ze souboru a přepíše stávající data. Tuto akci nelze vrátit!</p>
+              <button class="btn btn-outline-primary" id="importBackupBtn">
+                <i class="bi bi-upload me-1"></i>Vybrat soubor zálohy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Check files -->
+        <div class="backup-card mt-3">
+          <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-clipboard-check-fill fs-2 text-primary"></i>
+            <div class="flex-grow-1">
+              <h5>Zkontrolovat datové soubory</h5>
+              <p class="text-muted small mb-2">Ověří existenci a validitu všech datových souborů.</p>
+              <button class="btn btn-outline-secondary" id="checkFilesBtn">
+                <i class="bi bi-search me-1"></i>Zkontrolovat
+              </button>
+              <div id="fileCheckResults" class="mt-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <!-- Restore sample data -->
+        <div class="backup-card">
+          <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-arrow-counterclockwise fs-2" style="color:var(--color-low-dark)"></i>
+            <div class="flex-grow-1">
+              <h5>Obnovit ukázková data</h5>
+              <p class="text-muted small mb-2">Znovu inicializuje aplikaci s ukázkovými filamenty a výchozím nastavením. Stávající data budou zachována.</p>
+              <button class="btn btn-outline-warning" id="restoreSampleBtn">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Obnovit ukázky
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delete all data -->
+        <div class="backup-card mt-3">
+          <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-trash-fill fs-2" style="color:var(--color-empty)"></i>
+            <div class="flex-grow-1">
+              <h5>Smazat všechna data</h5>
+              <p class="text-muted small mb-2">Trvale smaže všechny filamenty a logy. Uživatelé a nastavení zůstanou zachovány.</p>
+              <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
+                <i class="bi bi-trash me-1"></i>Smazat data
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Individual file downloads (fallback) -->
+        <div class="backup-card mt-3" id="fallbackSection">
+          <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-file-earmark-arrow-down-fill fs-2 text-muted"></i>
+            <div class="flex-grow-1">
+              <h5 class="text-muted">Stáhnout jednotlivé soubory</h5>
+              <p class="text-muted small mb-2">Záložní možnost pro prohlížeče bez File System Access API.</p>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-outline-secondary download-file-btn" data-file="filaments.json">
+                  <i class="bi bi-file-earmark-code me-1"></i>filaments.json
+                </button>
+                <button class="btn btn-sm btn-outline-secondary download-file-btn" data-file="settings.json">
+                  <i class="bi bi-file-earmark-code me-1"></i>settings.json
+                </button>
+                <button class="btn btn-sm btn-outline-secondary download-file-btn" data-file="users.json">
+                  <i class="bi bi-file-earmark-code me-1"></i>users.json
+                </button>
+                <button class="btn btn-sm btn-outline-secondary download-file-btn" data-file="logs.json">
+                  <i class="bi bi-file-earmark-code me-1"></i>logs.json
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity log -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center" style="background:var(--color-primary-dark);color:#fff">
+            <h6 class="mb-0"><i class="bi bi-journal-text me-2"></i>Protokol aktivit (posledních 20)</h6>
+            <button class="btn btn-sm btn-light" id="refreshLogsBtn">
+              <i class="bi bi-arrow-clockwise me-1"></i>Obnovit
+            </button>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm log-table mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:160px">Datum a čas</th>
+                    <th style="width:100px">Uživatel</th>
+                    <th style="width:130px">Typ</th>
+                    <th>Popis</th>
+                  </tr>
+                </thead>
+                <tbody id="logsTableBody">
+                  <tr><td colspan="4" class="text-center text-muted py-3">Načítám...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Restore confirmation modal -->
+  <div class="modal fade" id="restoreConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title">
+            <i class="bi bi-exclamation-triangle me-2"></i>Potvrdit import zálohy
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+        </div>
+        <div class="modal-body">
+          <p>Importem zálohy přepíšete všechna stávající data (filamenty, nastavení, uživatele a logy).</p>
+          <p class="fw-bold text-danger">Tuto akci nelze vrátit. Pokračovat?</p>
+          <div id="backupPreview" class="p-2 rounded" style="background:#f8f9fa;font-size:0.85rem;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
+          <button type="button" class="btn btn-warning" id="confirmRestoreBtn">
+            <i class="bi bi-cloud-arrow-up me-1"></i>Importovat zálohu
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete all modal -->
+  <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-exclamation-triangle me-2"></i>Smazat všechna data
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Zavřít"></button>
+        </div>
+        <div class="modal-body">
+          <p>Opravdu chcete smazat <strong>všechny filamenty a logy</strong>?</p>
+          <p class="text-muted small">Uživatelé a nastavení aplikace budou zachovány.</p>
+          <p class="fw-bold text-danger">Tuto akci nelze vrátit!</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zrušit</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteAllBtn">
+            <i class="bi bi-trash me-1"></i>Smazat vše
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/calculations.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    let _pendingBackup = null;
+
+    async function loadLogs() {
+      const logs = await Storage.readJsonFile('logs.json', []);
+      const tbody = document.getElementById('logsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const recent = logs.slice(0, 20);
+      if (recent.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Žádné záznamy.</td></tr>';
+        return;
+      }
+      const typeLabels = {
+        login: 'Přihlášení', logout: 'Odhlášení',
+        add_filament: 'Přidání', edit_filament: 'Úprava',
+        delete_filament: 'Smazání', archive_filament: 'Archivace',
+        quick_weigh: 'Zvážení', save_settings: 'Nastavení',
+        add_material: 'Materiál', delete_material: 'Materiál',
+        user_management: 'Uživatelé', backup: 'Záloha',
+        restore: 'Obnova', init: 'Inicializace', info: 'Info'
+      };
+      recent.forEach(log => {
+        const tr = document.createElement('tr');
+        const date = new Date(log.date).toLocaleString('cs-CZ');
+        tr.innerHTML = `
+          <td class="text-muted">${date}</td>
+          <td><code>${log.user || ''}</code></td>
+          <td><span class="badge bg-secondary log-type-badge">${typeLabels[log.type] || log.type}</span></td>
+          <td>${log.description || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function checkFiles() {
+      const files = ['filaments.json', 'settings.json', 'users.json', 'app-state.json', 'logs.json'];
+      const results = document.getElementById('fileCheckResults');
+      if (!results) return;
+      results.innerHTML = '<div class="text-muted small">Kontroluji...</div>';
+
+      let html = '<div class="mt-2">';
+      for (const f of files) {
+        let exists = false, valid = false, count = '';
+        try {
+          exists = await Storage.fileExists(f);
+          if (exists) {
+            const data = await Storage.readJsonFile(f, null);
+            valid = data !== null;
+            if (Array.isArray(data)) count = ` (${data.length} položek)`;
+          }
+        } catch (e) { /* ignore */ }
+        const icon = exists && valid ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger';
+        const status = exists ? (valid ? 'OK' + count : 'Chyba parsování') : 'Nenalezen';
+        html += `<div class="d-flex align-items-center gap-2 py-1">
+          <i class="bi ${icon}"></i>
+          <code>${f}</code>
+          <span class="text-muted small">${status}</span>
+        </div>`;
+      }
+      html += '</div>';
+      results.innerHTML = html;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await App.init();
+      await loadLogs();
+
+      document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
+
+      // Create backup
+      document.getElementById('createBackupBtn').addEventListener('click', async () => {
+        try {
+          const backup = await Storage.backupAllData();
+          const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+          const filename = `filementy-backup-${ts}.json`;
+          Storage.downloadJson(backup, filename);
+          const user = Auth.getCurrentUser();
+          await Storage.addLog(user ? user.username : 'unknown', 'backup', `Záloha vytvořena: ${filename}`);
+          App.showToast('Záloha byla stažena.', 'success');
+          await loadLogs();
+        } catch (e) {
+          App.showToast('Chyba při tvorbě zálohy: ' + e.message, 'danger');
+        }
+      });
+
+      // Import backup
+      document.getElementById('importBackupBtn').addEventListener('click', async () => {
+        const data = await Storage.importFromFile();
+        if (!data) { App.showToast('Soubor nebyl načten nebo není validní JSON.', 'warning'); return; }
+
+        // Validate backup structure
+        const expectedKeys = ['filaments.json', 'settings.json', 'users.json'];
+        const missingKeys = expectedKeys.filter(k => !(k in data));
+        if (missingKeys.length > 0) {
+          App.showToast('Soubor zálohy neobsahuje očekávaná data. Zkontrolujte soubor.', 'danger');
+          return;
+        }
+
+        _pendingBackup = data;
+        const preview = document.getElementById('backupPreview');
+        if (preview) {
+          const filCount = Array.isArray(data['filaments.json']) ? data['filaments.json'].length : '?';
+          const userCount = Array.isArray(data['users.json']) ? data['users.json'].length : '?';
+          preview.innerHTML = `
+            <div><i class="bi bi-check2 me-1 text-success"></i>Filamenty: ${filCount} položek</div>
+            <div><i class="bi bi-check2 me-1 text-success"></i>Uživatelé: ${userCount} položek</div>
+            <div><i class="bi bi-check2 me-1 text-success"></i>Nastavení: nalezeno</div>
+          `;
+        }
+        const modal = new bootstrap.Modal(document.getElementById('restoreConfirmModal'));
+        modal.show();
+      });
+
+      document.getElementById('confirmRestoreBtn').addEventListener('click', async () => {
+        if (!_pendingBackup) return;
+        try {
+          await Storage.restoreFromBackup(_pendingBackup);
+          const user = Auth.getCurrentUser();
+          await Storage.addLog(user ? user.username : 'unknown', 'restore', 'Data obnovena ze zálohy.');
+          App.showToast('Data byla úspěšně obnovena ze zálohy.', 'success');
+          const modal = bootstrap.Modal.getInstance(document.getElementById('restoreConfirmModal'));
+          if (modal) modal.hide();
+          _pendingBackup = null;
+          await loadLogs();
+        } catch (e) {
+          App.showToast('Chyba při obnově: ' + e.message, 'danger');
+        }
+      });
+
+      // Check files
+      document.getElementById('checkFilesBtn').addEventListener('click', checkFiles);
+
+      // Restore sample data
+      document.getElementById('restoreSampleBtn').addEventListener('click', async () => {
+        if (!confirm('Opravdu chcete znovu inicializovat ukázková data? Stávající data nebudou smazána, jen doplněna.')) return;
+        try {
+          // Force re-init by temporarily ignoring existing files won't work with initializeDataFiles
+          // Instead we just call initializeDataFiles which skips existing files
+          await Storage.initializeDataFiles();
+          const user = Auth.getCurrentUser();
+          await Storage.addLog(user ? user.username : 'unknown', 'restore', 'Ukázková data obnovena.');
+          App.showToast('Ukázková data byla inicializována.', 'success');
+          await loadLogs();
+        } catch (e) {
+          App.showToast('Chyba: ' + e.message, 'danger');
+        }
+      });
+
+      // Delete all data
+      document.getElementById('confirmDeleteAllBtn').addEventListener('click', async () => {
+        try {
+          await Storage.writeJsonFile('filaments.json', []);
+          await Storage.writeJsonFile('logs.json', [{
+            date: new Date().toISOString(),
+            user: Auth.getCurrentUser()?.username || 'unknown',
+            type: 'delete',
+            description: 'Všechna data byla smazána.'
+          }]);
+          const modal = bootstrap.Modal.getInstance(document.getElementById('deleteAllModal'));
+          if (modal) modal.hide();
+          App.showToast('Všechna data byla smazána.', 'success');
+          await loadLogs();
+        } catch (e) {
+          App.showToast('Chyba: ' + e.message, 'danger');
+        }
+      });
+
+      // Individual file downloads
+      document.querySelectorAll('.download-file-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const file = btn.dataset.file;
+          const data = await Storage.readJsonFile(file, null);
+          if (data === null) { App.showToast('Soubor nenalezen nebo nelze přečíst.', 'warning'); return; }
+          Storage.downloadJson(data, file);
+          App.showToast(`${file} byl stažen.`, 'success');
+        });
+      });
+    });
+  </script>
+</body>
+</html>
