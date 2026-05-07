@@ -239,6 +239,26 @@ if ($action === 'setup' && $method === 'POST') {
     jsonOut(['ok' => true]);
 }
 
+// ── Wipe all data files ────────────────────────────────────────────────────────
+
+if ($action === 'wipe' && $method === 'POST') {
+    $body = json_decode(file_get_contents('php://input'), true) ?? [];
+    if (($body['confirm'] ?? '') !== 'WIPE_ALL_DATA') {
+        jsonOut(['error' => 'Chybí potvrzení.'], 400);
+    }
+
+    session_destroy();
+
+    foreach ($ALLOWED_FILES as $f) {
+        $path = $DATA_DIR . $f;
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+
+    jsonOut(['ok' => true]);
+}
+
 // ── File I/O ───────────────────────────────────────────────────────────────────
 
 if ($file !== '') {

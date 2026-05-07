@@ -101,7 +101,10 @@ const App = (() => {
         <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
         <p class="text-muted mb-1">Evidence filamentů pro 3D tisk</p>
         <hr>
-        <p class="mb-4 fw-medium">Kde chcete ukládat data?</p>
+        ${fsaSupported
+          ? '<p class="mb-4 fw-medium">Kde chcete ukládat data?</p>'
+          : '<p class="mb-3 fw-medium">Kde chcete ukládat data?</p><div class="alert alert-info py-2 px-3 small text-start mb-3"><i class="bi bi-info-circle me-1"></i>Váš prohlížeč nepodporuje ukládání do lokální složky. Použijte Server (PHP) nebo Chrome / Edge.</div>'
+        }
         <div class="d-flex flex-column gap-3" style="max-width:340px;margin:0 auto">
           ${fsaSupported ? `
           <button id="chooseLocalBtn" class="btn btn-primary btn-lg text-start px-4">
@@ -564,18 +567,9 @@ const App = (() => {
     }
 
     if (!Storage.isSupported()) {
-      showOverlayNoSupport();
-      // Wait for user to click continue
-      await new Promise(resolve => {
-        const btn = document.getElementById('continueNoSupportBtn');
-        if (btn) btn.addEventListener('click', resolve, { once: true });
-        else resolve();
-      });
-      const user = Auth.requireAuth();
-      if (!user) return;
-      renderNav(user);
-      showNoSupportBanner();
-      hideOverlay();
+      // FSA není k dispozici (Safari, Firefox, Brave iOS) → přesměruj na login
+      // kde si uživatel zvolí Server (PHP) režim
+      window.location.href = 'login.html';
       return;
     }
 
@@ -618,19 +612,11 @@ const App = (() => {
       return;
     }
 
-    if (!Storage.isSupported()) {
-      // Show no-support overlay, let user continue
-      await new Promise(resolve => {
-        showOverlayNoSupport();
-        const btn = document.getElementById('continueNoSupportBtn');
-        if (btn) btn.addEventListener('click', resolve, { once: true });
-        else resolve();
-      });
-      hideOverlay();
-      return;
-    }
-
-    const storageStatus = await Storage.tryRestoreStorage();
+    // Pokud FSA není podporováno (Safari, Firefox, Brave iOS), přejdeme rovnou
+    // na výběr úložiště – chooser sám skryje tlačítko lokální složky
+    const storageStatus = Storage.isSupported()
+      ? await Storage.tryRestoreStorage()
+      : 'not-set';
 
     if (storageStatus === 'not-set') {
       await new Promise(resolve => showOverlayChooseStorage(resolve));
