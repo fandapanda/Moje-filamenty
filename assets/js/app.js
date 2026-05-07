@@ -63,15 +63,16 @@ const App = (() => {
     setOverlayContent(`
       <div class="setup-box">
         <div class="setup-logo">🧵</div>
-        <h2 class="fw-bold" style="color: var(--color-primary-dark)">Moje filamenty</h2>
+        <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
         <p class="text-muted mb-1">Evidence filamentů pro 3D tisk</p>
         <hr>
-        <p class="mb-3">Pro ukládání dat je potřeba vybrat složku ve vašem počítači.<br>
+        <p class="mb-3">Pro ukládání dat vyberte složku ve vašem počítači.<br>
         Data budou uložena jako JSON soubory přímo ve vybrané složce.</p>
         <button id="selectFolderBtn" class="btn btn-primary btn-lg px-4">
           <i class="bi bi-folder2-open me-2"></i>Vybrat datovou složku
         </button>
-        <p class="mt-3 text-muted small">Složku stačí vybrat jen jednou – prohlížeč si ji zapamatuje.</p>
+        <p class="mt-3 text-muted small">Složku stačí vybrat jen jednou – prohlížeč si ji zapamatuje.<br>
+        Pro přístup z více počítačů použijte složku v OneDrive, Dropboxu nebo Google Drive.</p>
       </div>
     `);
     document.getElementById('selectFolderBtn').addEventListener('click', async () => {
@@ -85,9 +86,62 @@ const App = (() => {
         if (e.name === 'AbortError') {
           showOverlaySetup(onFolderSelected);
         } else {
-          showOverlaySetup(onFolderSelected);
           console.error('Folder selection error:', e);
+          showOverlaySetup(onFolderSelected);
         }
+      }
+    });
+  }
+
+  function showOverlayChooseStorage(onSelected) {
+    const fsaSupported = Storage.isSupported();
+    setOverlayContent(`
+      <div class="setup-box">
+        <div class="setup-logo">🧵</div>
+        <h2 class="fw-bold" style="color:var(--color-primary-dark)">Moje filamenty</h2>
+        <p class="text-muted mb-1">Evidence filamentů pro 3D tisk</p>
+        <hr>
+        <p class="mb-4 fw-medium">Kde chcete ukládat data?</p>
+        <div class="d-flex flex-column gap-3" style="max-width:340px;margin:0 auto">
+          ${fsaSupported ? `
+          <button id="chooseLocalBtn" class="btn btn-primary btn-lg text-start px-4">
+            <i class="bi bi-folder2-open me-2"></i>Lokální složka
+            <div class="small fw-normal opacity-75 mt-1">Data na tomto počítači nebo v OneDrive/Dropboxu.</div>
+          </button>` : ''}
+          <button id="chooseServerBtn" class="btn ${fsaSupported ? 'btn-outline-primary' : 'btn-primary'} btn-lg text-start px-4">
+            <i class="bi bi-hdd-rack me-2"></i>Server (PHP)
+            <div class="small fw-normal opacity-75 mt-1">Data uložena na hostingu – přístupná odkudkoli.</div>
+          </button>
+        </div>
+      </div>
+    `);
+
+    if (fsaSupported) {
+      document.getElementById('chooseLocalBtn').addEventListener('click', async () => {
+        try {
+          showOverlaySpinner('Výběr složky...');
+          await Storage.selectDataFolder();
+          showOverlaySpinner('Inicializace dat...');
+          await Storage.initializeDataFiles();
+          if (onSelected) await onSelected();
+        } catch (e) {
+          if (e.name !== 'AbortError') console.error('FSA setup error:', e);
+          showOverlayChooseStorage(onSelected);
+        }
+      });
+    }
+
+    document.getElementById('chooseServerBtn').addEventListener('click', async () => {
+      showOverlaySpinner('Připojování k serveru...');
+      try {
+        Storage.setServerMode();
+        await Storage.serverSetup();
+        if (onSelected) await onSelected();
+      } catch (e) {
+        console.error('Server setup error:', e);
+        Storage.clearServerMode();
+        showOverlayChooseStorage(onSelected);
+        showToast('Chyba: api.php není dostupný nebo server nepodporuje PHP sessions.', 'danger');
       }
     });
   }
@@ -491,6 +545,24 @@ const App = (() => {
   async function init() {
     showOverlaySpinner('Načítání...');
 
+    // ── Server mode ───────────────────────────────────────────────────────────
+    if (Storage.isServerMode()) {
+      const user = await Auth.checkServerSession();
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      await checkDefaultPassword(user);
+      renderNav(user);
+      try {
+        const state = await Storage.readJsonFile('app-state.json', {});
+        state.lastOpened = new Date().toISOString();
+        await Storage.writeJsonFile('app-state.json', state);
+      } catch (e) { /* non-critical */ }
+      hideOverlay();
+      return;
+    }
+
     if (!Storage.isSupported()) {
       showOverlayNoSupport();
       // Wait for user to click continue
@@ -507,11 +579,11 @@ const App = (() => {
       return;
     }
 
-    const folderStatus = await Storage.tryRestoreFolder();
+    const storageStatus = await Storage.tryRestoreStorage();
 
-    if (folderStatus === 'not-set') {
+    if (storageStatus === 'not-set') {
       await new Promise(resolve => showOverlaySetup(resolve));
-    } else if (folderStatus === 'needs-permission') {
+    } else if (storageStatus === 'needs-permission') {
       await new Promise(resolve => showOverlayPermission(resolve));
     }
     // 'granted' falls through
@@ -535,6 +607,17 @@ const App = (() => {
   async function initLogin() {
     showOverlaySpinner('Načítání...');
 
+    // ── Server mode ───────────────────────────────────────────────────────────
+    if (Storage.isServerMode()) {
+      const user = await Auth.checkServerSession();
+      if (user) {
+        window.location.href = 'index.html';
+        return;
+      }
+      hideOverlay();
+      return;
+    }
+
     if (!Storage.isSupported()) {
       // Show no-support overlay, let user continue
       await new Promise(resolve => {
@@ -547,11 +630,11 @@ const App = (() => {
       return;
     }
 
-    const folderStatus = await Storage.tryRestoreFolder();
+    const storageStatus = await Storage.tryRestoreStorage();
 
-    if (folderStatus === 'not-set') {
-      await new Promise(resolve => showOverlaySetup(resolve));
-    } else if (folderStatus === 'needs-permission') {
+    if (storageStatus === 'not-set') {
+      await new Promise(resolve => showOverlayChooseStorage(resolve));
+    } else if (storageStatus === 'needs-permission') {
       await new Promise(resolve => showOverlayPermission(resolve));
     }
 

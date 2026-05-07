@@ -1,0 +1,14 @@
+Options -Indexes
+RewriteEngine On
+
+# index.html -> presmeruj na root /
+RewriteRule ^index\.html$ / [R=301,L,NE]
+
+# ostatni .html -> presmeruj na cisty URL (napr. /login.html -> /login)
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+(.+)\.html[\s?] [NC]
+RewriteRule ^ /%1 [R=301,L,NE]
+
+# interni prepis: ciste URL -> .html soubor
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.+)$ $1.html [L]

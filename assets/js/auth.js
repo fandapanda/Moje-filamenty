@@ -25,6 +25,36 @@ const Auth = {
     return computed === hash;
   },
 
+  async loginServer(username, passwordHash) {
+    try {
+      const res = await fetch('api.php?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, passwordHash })
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data.user) return null;
+      this.setCurrentUser(data.user);
+      return data.user;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async checkServerSession() {
+    try {
+      const res = await fetch('api.php?action=check');
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data.loggedIn) return null;
+      this.setCurrentUser(data.user);
+      return data.user;
+    } catch (e) {
+      return null;
+    }
+  },
+
   /**
    * Get the current logged-in user from sessionStorage.
    * @returns {object|null}
@@ -55,7 +85,10 @@ const Auth = {
   /**
    * Log out: clear session and redirect to login.html.
    */
-  logout() {
+  async logout() {
+    if (typeof Storage !== 'undefined' && Storage.isServerMode()) {
+      try { await fetch('api.php?action=logout'); } catch (e) { /* ignore */ }
+    }
     sessionStorage.removeItem('currentUser');
     window.location.href = 'login.html';
   },

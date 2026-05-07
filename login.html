@@ -64,15 +64,17 @@
             </button>
           </form>
 
-          <hr class="my-4">
-          <p class="text-center text-muted small mb-0">
-            <i class="bi bi-question-circle me-1"></i>
-            Potřebujete pomoc? <a href="README.md" target="_blank">Přečtěte si README</a>.
-          </p>
+          <div id="readmeSection">
+            <hr class="my-4">
+            <p class="text-center text-muted small mb-0">
+              <i class="bi bi-question-circle me-1"></i>
+              Potřebujete pomoc? <a href="README.md" target="_blank">Přečtěte si README</a>.
+            </p>
+          </div>
         </div>
       </div>
 
-      <p class="text-center text-muted small mt-3">
+      <p class="text-center text-muted small mt-3" id="defaultCredsHint">
         Výchozí přihlašovací údaje: <code>admin</code> / <code>admin123</code>
       </p>
     </div>
@@ -86,6 +88,20 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       await App.initLogin();
+
+      // Hide default credential hints if admin password has been changed
+      (async () => {
+        if (Storage.isServerMode()) return; // cannot check before login in server mode
+        try {
+          const users = await Storage.readJsonFile('users.json', []);
+          const admin = users.find(u => u.username === 'admin' && u.role === 'admin');
+          const isDefault = admin && await Auth.verifyPassword('admin123', admin.passwordHash);
+          if (!isDefault) {
+            document.getElementById('defaultCredsHint')?.classList.add('d-none');
+            document.getElementById('readmeSection')?.classList.add('d-none');
+          }
+        } catch (_) { /* storage nemusí být dostupné hned */ }
+      })();
 
       // Password visibility toggle
       document.getElementById('togglePwd').addEventListener('click', () => {
@@ -122,6 +138,23 @@
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Přihlašuji...';
 
         try {
+          // ── Server mode login ──────────────────────────────────────────────
+          if (Storage.isServerMode()) {
+            const hash = await Auth.hashPassword(password);
+            const user = await Auth.loginServer(username, hash);
+            if (!user) {
+              errorMsg.textContent = 'Nesprávné přihlašovací údaje.';
+              errorEl.classList.remove('d-none');
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Přihlásit se';
+              return;
+            }
+            await Storage.addLog(user.username, 'login', `Přihlášení uživatele ${user.name}`);
+            window.location.href = 'index.html';
+            return;
+          }
+
+          // ── FSA mode login ─────────────────────────────────────────────────
           const users = await Storage.readJsonFile('users.json', []);
           const user = users.find(u => u.username === username && u.active);
 

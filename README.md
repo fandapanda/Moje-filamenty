@@ -1,23 +1,27 @@
 # 🧵 Moje filamenty
 
-> **Lokální webová aplikace pro správu filamentů pro 3D tisk**
+> **Webová aplikace pro správu filamentů pro 3D tisk**
 >
-> *A local web app for managing your 3D printing filament inventory — no server, no database, no installation.*
+> *A web app for managing your 3D printing filament inventory — no database, no build system, no installation required.*
 
-[![No Backend](https://img.shields.io/badge/backend-none-brightgreen?style=flat-square)](.)
-[![No Build System](https://img.shields.io/badge/build%20system-none-brightgreen?style=flat-square)](.)
 [![Pure JS](https://img.shields.io/badge/JavaScript-vanilla-f7df1e?style=flat-square&logo=javascript)](.)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952b3?style=flat-square&logo=bootstrap)](.)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
-[![Chrome/Edge](https://img.shields.io/badge/browser-Chrome%20%7C%20Edge%2086%2B-4285F4?style=flat-square&logo=googlechrome)](.)
+[![Chrome/Edge](https://img.shields.io/badge/FSA%20mode-Chrome%20%7C%20Edge%2086%2B-4285F4?style=flat-square&logo=googlechrome)](.)
+[![PHP](https://img.shields.io/badge/Server%20mode-PHP%208%2B-777bb3?style=flat-square&logo=php)](.)
 
 ---
 
 ## Co to je
 
-**Moje filamenty** je jednoduchá lokální webová aplikace určená pro domácí dílny a nadšence do 3D tisku. Hlavní smysl je mít okamžitý přehled o tom, kolik filamentu zbývá na každé cívce — stačí ji zvážit a zadat číslo.
+**Moje filamenty** je jednoduchá webová aplikace určená pro domácí dílny a nadšence do 3D tisku. Hlavní smysl je mít okamžitý přehled o tom, kolik filamentu zbývá na každé cívce — stačí ji zvážit a zadat číslo.
 
-Data se ukládají jako **čitelné JSON soubory přímo do složky ve vašem počítači**. Žádný cloud, žádný server, žádná instalace. Aplikaci otevřete jako obyčejný soubor v prohlížeči.
+Aplikace podporuje **dva režimy ukládání dat**:
+
+| Režim | Kde běží | Kde jsou data | Přístup z více zařízení |
+|-------|----------|---------------|------------------------|
+| **Lokální složka** (FSA) | přímo v prohlížeči | JSON soubory na vašem disku | jen sdílenou složkou (OneDrive, Dropbox) |
+| **Server (PHP)** | na hostingu s PHP | JSON soubory na serveru | ano, odkudkoli |
 
 ---
 
@@ -30,7 +34,7 @@ Data se ukládají jako **čitelné JSON soubory přímo do složky ve vašem po
 
 ### Evidence filamentů
 - Přidání, úprava a archivace filamentů
-- Sledování: výrobce, materiál, barva (název + HEX), průměr, všechny hmotnosti
+- Sledování: výrobce, materiál, barva (název + HEX), průměr, všechny hmotnosti, cena za cívku
 - Přepočet gramů na metry podle materiálu a průměru vlákna
 - Filtry a textové vyhledávání v seznamu
 
@@ -64,7 +68,7 @@ Data se ukládají jako **čitelné JSON soubory přímo do složky ve vašem po
 
 ## Technologie
 
-Žádný backend, žádná databáze, žádný build systém, žádný `npm install`.
+Žádná databáze, žádný build systém, žádný `npm install`.
 
 | Vrstva | Technologie |
 |--------|-------------|
@@ -72,32 +76,42 @@ Data se ukládají jako **čitelné JSON soubory přímo do složky ve vašem po
 | Styly | CSS 3 + Bootstrap 5.3.2 (CDN) |
 | Ikony | Bootstrap Icons 1.11.1 (CDN) |
 | Logika | Vanilla JavaScript (ES2020+) |
-| Úložiště | **File System Access API** + IndexedDB |
+| Úložiště — lokální | File System Access API + IndexedDB |
+| Úložiště — server | PHP 8 REST API (`api.php`) + PHP sessions |
 | Hesla | Web Crypto API (SHA-256) |
-| Data | JSON soubory na disku |
+| Data | JSON soubory (na disku nebo na serveru) |
 
 ---
 
 ## Jak spustit
 
-### Požadavky
-- **Google Chrome** nebo **Microsoft Edge** verze 86 nebo novější
-- Žádná instalace, žádný server, žádný Node.js
+### Varianta A — Lokální režim (bez serveru)
 
-### Postup
+**Požadavky:** Google Chrome nebo Microsoft Edge 86+, nic jiného.
+
 1. Stáhněte nebo naklonujte repozitář:
    ```bash
    git clone https://github.com/fandapanda/Moje-filamenty.git
-   cd filementy
    ```
-2. Otevřete soubor `index.html` v Chrome nebo Edge:
-   - Dvojklik na soubor, nebo
-   - Přetáhněte ho do okna prohlížeče, nebo
-   - `Ctrl+O` → vyberte soubor
-3. Při prvním spuštění vyberte složku pro ukládání dat (stačí jednou).
+2. Otevřete soubor `index.html` v Chrome nebo Edge (dvojklik, přetažení nebo `Ctrl+O`).
+3. Při prvním spuštění zvolte **Lokální složka** a vyberte adresář pro data (stačí jednou — prohlížeč si ho zapamatuje).
 4. Přihlaste se výchozími údaji a změňte heslo.
 
-> **Firefox / Safari:** Aplikace funguje v omezeném režimu bez automatického ukládání souborů. Data lze zálohovat a importovat ručně přes sekci Záloha.
+> **Firefox / Safari:** Nepodporují File System Access API. Aplikace nabídne pouze serverový režim nebo omezený provoz s ručním exportem/importem přes sekci Záloha.
+
+---
+
+### Varianta B — Serverový režim (hosting s PHP)
+
+**Požadavky:** webhosting s PHP 8+, Apache s povoleným `mod_rewrite`.
+
+1. Nahrajte všechny soubory projektu na server (FTP/SFTP/Git deploy).
+2. Ujistěte se, že složka `data/` je zapisovatelná (`chmod 755` nebo přes správce souborů hostingu). Pokud neexistuje, `api.php` ji při prvním spuštění sám vytvoří.
+3. Otevřete doménu v libovolném moderním prohlížeči.
+4. Při prvním spuštění zvolte **Server (PHP)** — aplikace automaticky vytvoří datové soubory s ukázkovými daty.
+5. Přihlaste se výchozími údaji (`admin` / `admin123`) a okamžitě změňte heslo.
+
+> Data se ukládají do složky `data/` na serveru jako JSON soubory. Přímý HTTP přístup ke složce blokuje `.htaccess`. PHP sessions zajišťují přihlášení na straně serveru.
 
 ---
 
@@ -114,6 +128,8 @@ filementy/
 ├── settings.html         # Nastavení aplikace
 ├── users.html            # Správa uživatelů (admin)
 ├── backup.html           # Záloha a import
+├── api.php               # REST API pro serverový režim (PHP)
+├── .htaccess             # Čisté URL + přesměrování
 ├── assets/
 │   ├── css/
 │   │   └── style.css     # Vlastní styly
@@ -121,19 +137,25 @@ filementy/
 │       ├── app.js        # Inicializace, navigace, overlay, toasty
 │       ├── auth.js       # Přihlášení, session, SHA-256
 │       ├── calculations.js  # Výpočty (g → m, stav, %)
-│       ├── storage.js    # File System Access API, IndexedDB
+│       ├── storage.js    # FSA + IndexedDB + serverový fetch
 │       ├── filaments.js  # CRUD filamentů
 │       ├── calculator.js # Kalkulačka tisku
 │       ├── settings.js   # Nastavení
 │       └── users.js      # Správa uživatelů
-└── README.md
+└── data/                 # Datové soubory (server režim, chráněno .htaccess)
+    ├── filaments.json
+    ├── settings.json
+    ├── users.json
+    ├── app-state.json
+    ├── logs.json
+    └── calculations.json
 ```
 
 ---
 
 ## Datové soubory
 
-Po výběru složky aplikace vytvoří tyto soubory:
+Po výběru složky (lokální režim) nebo inicializaci (serverový režim) aplikace vytvoří tyto soubory:
 
 | Soubor | Obsah |
 |--------|-------|
@@ -144,7 +166,7 @@ Po výběru složky aplikace vytvoří tyto soubory:
 | `logs.json` | Protokol akcí (max. 500 záznamů, LIFO) |
 | `calculations.json` | Historie kalkulací ceny tisku |
 
-Všechny soubory jsou **čitelné lidsky** (formátovaný JSON), lze je otevřít v textovém editoru, zálohovat nebo přesunout na jiný počítač.
+Všechny soubory jsou **čitelné lidsky** (formátovaný JSON), lze je otevřít v textovém editoru nebo zazálohovat jako běžné soubory.
 
 ### Struktura záznamu filamentu
 
@@ -235,7 +257,7 @@ celková cena      = materiál + elektřina
 | FlashForge Creator Pro | 180 W |
 | Vlastní | zadáte ručně |
 
-> Hodnoty jsou **průměrné příkony** během aktivního tisku. Skutečná spotřeba se liší podle materiálu, teplot a konkrétního modelu. Uzavřené tiskárny (X1C, P1S, Voron) spotřebují více kvůli vyhřívání komory.
+> Hodnoty jsou **průměrné příkony** během aktivního tisku. Skutečná spotřeba se liší podle materiálu, teplot a konkrétního modelu.
 
 ---
 
@@ -251,43 +273,33 @@ celková cena      = materiál + elektřina
 
 ## Jak funguje ukládání dat
 
-Aplikace využívá [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API):
+### Lokální režim (File System Access API)
 
 1. Při prvním spuštění vyberete složku pomocí standardního dialogu prohlížeče.
 2. Odkaz na složku se uloží do **IndexedDB** — prohlížeč si ho pamatuje i po restartu.
-3. Při každém dalším spuštění aplikace požádá o obnovení přístupu ke složce (jedno kliknutí).
-4. Při každé změně dat aplikace okamžitě zapíše příslušný JSON soubor.
+3. Při každém dalším spuštění aplikace požádá o obnovení přístupu (jedno kliknutí).
+4. Při každé změně dat aplikace okamžitě zapíše příslušný JSON soubor na disk.
 
-Data tak existují jako standardní soubory na vašem disku — nezávisí na prohlížeči, cache ani cookies.
+Data tak existují jako standardní soubory na vašem disku — nezávisí na prohlížeči, cache ani cookies. Pro přístup z více počítačů stačí vybrat složku v OneDrive, Dropboxu nebo Google Drive.
+
+### Serverový režim (PHP API)
+
+1. Všechna čtení a zápisy probíhají přes `api.php` (jednoduchý REST endpoint).
+2. Přihlášení zajišťuje PHP session — cookie `PHPSESSID` zůstane aktivní po dobu sezení.
+3. Heslo se nikdy neposílá jako text: prohlížeč vypočítá SHA-256 hash a odešle pouze ten.
+4. PHP hash porovná s hodnotou uloženou v `users.json` a vrátí session token.
+5. Složka `data/` je chráněna souborem `.htaccess` — JSON soubory nelze stáhnout přímo přes prohlížeč.
 
 ---
 
 ## Poznámka k bezpečnosti
 
-Přihlašovací systém slouží jako **jednoduchý místní zámek** — chrání před náhodným přístupem nebo záměnou uživatelů na sdíleném počítači. **Nejde o plnohodnotný bezpečnostní systém.**
+Přihlašovací systém slouží jako **jednoduchý přístupový zámek** — chrání před náhodným přístupem nebo záměnou uživatelů.
 
-- Hesla jsou hashována pomocí SHA-256 (Web Crypto API), nikdy se neukládají v čitelné podobě.
-- Kdokoliv s přístupem k datové složce může JSON soubory číst a upravovat — to je záměr, nikoli chyba.
-- Přihlašovací session trvá jen po dobu otevřené záložky (sessionStorage).
-- Aplikace neodesílá žádná data na internet.
-
----
-
-## Přispívání
-
-Pull requesty jsou vítány. Pokud chcete přidat funkci nebo opravit chybu:
-
-1. Forkněte repozitář
-2. Vytvořte větev: `git checkout -b feature/nazev-funkce`
-3. Commitněte změny: `git commit -m 'Přidání funkce XY'`
-4. Pushněte větev: `git push origin feature/nazev-funkce`
-5. Otevřete Pull Request
-
-### Pravidla pro příspěvky
-- Žádný backend, žádné závislosti přes npm
-- Žádný build systém — kód musí fungovat přímo v prohlížeči
-- Zachujte stávající strukturu souborů
-- Nové funkce dokumentujte v README
+- Hesla jsou hashována pomocí SHA-256, nikdy se neukládají v čitelné podobě.
+- **Lokální režim:** kdokoliv s přístupem k datové složce může JSON soubory číst — to je záměr, nikoli chyba. Zabezpečte složku oprávněními operačního systému.
+- **Serverový režim:** data jsou přístupná pouze přes `api.php` s platnou PHP session. Složka `data/` není přístupná přes HTTP.
+- Aplikace neodesílá žádná data na internet (ani v lokálním, ani v serverovém režimu).
 
 ---
 

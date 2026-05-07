@@ -8,7 +8,8 @@ const Storage = (() => {
   const IDB_VERSION = 1;
   const IDB_STORE = 'handles';
   const DIR_KEY = 'dataDirectory';
-
+  const MODE_KEY = 'mf_storage_mode';
+  const API_URL = 'api.php';
   let _dirHandle = null;
 
   // ── IndexedDB helpers ────────────────────────────────────────────────────────
@@ -72,6 +73,30 @@ const Storage = (() => {
     return { net, pct, meters, status };
   }
 
+  // ── Server mode ──────────────────────────────────────────────────────────────
+
+  function isServerMode() {
+    return localStorage.getItem(MODE_KEY) === 'server';
+  }
+
+  function setServerMode() {
+    localStorage.setItem(MODE_KEY, 'server');
+  }
+
+  function clearServerMode() {
+    localStorage.removeItem(MODE_KEY);
+  }
+
+  async function serverSetup() {
+    const res = await fetch(API_URL + '?action=setup', { method: 'POST' });
+    if (!res.ok) {
+      let msg = 'Server setup selhal';
+      try { const e = await res.json(); msg = e.error || msg; } catch (_) {}
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
   // ── Public API ───────────────────────────────────────────────────────────────
 
   function isSupported() {
@@ -85,7 +110,7 @@ const Storage = (() => {
     return handle;
   }
 
-  async function tryRestoreFolder() {
+  async function tryRestoreStorage() {
     try {
       const stored = await idbGet(DIR_KEY);
       if (!stored) return 'not-set';
@@ -96,7 +121,7 @@ const Storage = (() => {
       }
       return 'needs-permission';
     } catch (e) {
-      console.warn('tryRestoreFolder error:', e);
+      console.warn('tryRestoreStorage error:', e);
       return 'not-set';
     }
   }
@@ -118,10 +143,20 @@ const Storage = (() => {
   }
 
   function isReady() {
+    if (isServerMode()) return true;
     return _dirHandle !== null;
   }
 
   async function readJsonFile(fileName, defaultData) {
+    if (isServerMode()) {
+      try {
+        const res = await fetch(API_URL + '?file=' + encodeURIComponent(fileName));
+        if (!res.ok) return defaultData;
+        return await res.json();
+      } catch (e) {
+        return defaultData;
+      }
+    }
     if (!_dirHandle) return defaultData;
     try {
       const fileHandle = await _dirHandle.getFileHandle(fileName, { create: false });
@@ -134,6 +169,19 @@ const Storage = (() => {
   }
 
   async function writeJsonFile(fileName, data) {
+    if (isServerMode()) {
+      const res = await fetch(API_URL + '?file=' + encodeURIComponent(fileName), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data, null, 2)
+      });
+      if (!res.ok) {
+        let msg = 'Server write failed';
+        try { const e = await res.json(); msg = e.error || msg; } catch (_) {}
+        throw new Error(msg);
+      }
+      return;
+    }
     if (!_dirHandle) throw new Error('Data folder not set');
     const fileHandle = await _dirHandle.getFileHandle(fileName, { create: true });
     const writable = await fileHandle.createWritable();
@@ -142,6 +190,14 @@ const Storage = (() => {
   }
 
   async function fileExists(fileName) {
+    if (isServerMode()) {
+      try {
+        const res = await fetch(API_URL + '?file=' + encodeURIComponent(fileName));
+        return res.ok;
+      } catch (e) {
+        return false;
+      }
+    }
     if (!_dirHandle) return false;
     try {
       await _dirHandle.getFileHandle(fileName, { create: false });
@@ -392,7 +448,7 @@ const Storage = (() => {
   return {
     isSupported,
     selectDataFolder,
-    tryRestoreFolder,
+    tryRestoreStorage,
     requestStoredPermission,
     isReady,
     readJsonFile,
@@ -404,6 +460,10 @@ const Storage = (() => {
     downloadJson,
     importFromFile,
     restoreFromBackup,
-    getDirName
+    getDirName,
+    isServerMode,
+    setServerMode,
+    clearServerMode,
+    serverSetup
   };
 })();

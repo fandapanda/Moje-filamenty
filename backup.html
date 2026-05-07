@@ -32,6 +32,15 @@
       <h1><i class="bi bi-cloud-arrow-down me-2"></i>Záloha a obnova</h1>
     </div>
 
+    <!-- Storage folder info -->
+    <div class="backup-card mb-4 d-flex align-items-center gap-3">
+      <i class="bi bi-folder2-open fs-3 text-primary"></i>
+      <div>
+        <div class="fw-semibold mb-1">Datová složka</div>
+        <div id="storageFolderInfo" class="text-muted small">—</div>
+      </div>
+    </div>
+
     <div class="row g-4">
 
       <!-- Backup actions -->
@@ -403,6 +412,15 @@
           App.showToast(`${file} byl stažen.`, 'success');
         });
       });
+
+      // Show folder name
+      const folderInfo = document.getElementById('storageFolderInfo');
+      if (folderInfo) {
+        const dir = await Storage.getDirName();
+        folderInfo.innerHTML = dir
+          ? `<span class="storage-mode-badge"><i class="bi bi-folder2-open"></i> ${dir}</span> &nbsp;<span class="text-muted">— data se ukládají jako JSON soubory přímo do této složky</span>`
+          : 'Složka není nastavena.';
+      }
     });
   </script>
 </body>
